@@ -1,3 +1,5 @@
+Work in progres: I forked alanmcintyre's btce-api in an attempt to get it working for bter.com instead. I will update this readme when it is working.
+
 btce-api
 ========
 
