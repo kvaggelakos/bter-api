@@ -1,3 +1,6 @@
+bter-api 0.1:
+  - Initial version.
+
 Changes in 0.3:
   - If a nonce ends up out of date (due to an application crashing without 
     saving the current nonce(s), for example), one attempt will be made to 

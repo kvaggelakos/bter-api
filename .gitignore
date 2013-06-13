@@ -18,6 +18,9 @@ develop-eggs
 lib
 lib64
 
+# My API key
+*.api
+
 # Installer logs
 pip-log.txt
 
@@ -33,5 +36,8 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# PyCharm
+.idea/
 
 *~

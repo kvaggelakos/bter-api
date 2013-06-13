@@ -1,5 +1,6 @@
 import unittest
-from btceapi.common import *
+from bterapi.common import *
+
 
 class TestCommon(unittest.TestCase):
     def test_formatCurrency(self):
@@ -18,21 +19,35 @@ class TestCommon(unittest.TestCase):
 
     def test_formatCurrencyByPair(self):
         for p, d in max_digits.items():
-            self.assertEqual(formatCurrency(1.12, p),
-                             formatCurrencyDigits(1.12, d))
-            self.assertEqual(formatCurrency(44.0, p),
-                             formatCurrencyDigits(44.0, d))
-            self.assertEqual(truncateAmount(1.12, p),
-                             truncateAmountDigits(1.12, d))
-            self.assertEqual(truncateAmount(44.0, p),
-                             truncateAmountDigits(44.0, d))
+            self.assertEqual(formatCurrency(1.12, p, 'price'),
+                             formatCurrencyDigits(1.12, d['price']))
+            self.assertEqual(formatCurrency(44.0, p, 'price'),
+                             formatCurrencyDigits(44.0, d['price']))
+            self.assertEqual(truncateAmount(1.12, p, 'price'),
+                             truncateAmountDigits(1.12, d['price']))
+            self.assertEqual(truncateAmount(44.0, p, 'price'),
+                             truncateAmountDigits(44.0, d['price']))
+
+            self.assertEqual(formatCurrency(1.12, p, 'amount'),
+                             formatCurrencyDigits(1.12, d['amount']))
+            self.assertEqual(formatCurrency(44.0, p, 'amount'),
+                             formatCurrencyDigits(44.0, d['amount']))
+            self.assertEqual(truncateAmount(1.12, p, 'amount'),
+                             truncateAmountDigits(1.12, d['amount']))
+            self.assertEqual(truncateAmount(44.0, p, 'amount'),
+                             truncateAmountDigits(44.0, d['amount']))
 
     def test_truncateAmount(self):
         for p, d in max_digits.items():
-            self.assertEqual(truncateAmount(1.12, p),
-                             truncateAmountDigits(1.12, d))
-            self.assertEqual(truncateAmount(44.0, p),
-                             truncateAmountDigits(44.0, d))
+            self.assertEqual(truncateAmount(1.12, p, 'price'),
+                             truncateAmountDigits(1.12, d['price']))
+            self.assertEqual(truncateAmount(44.0, p, 'price'),
+                             truncateAmountDigits(44.0, d['price']))
+
+            self.assertEqual(truncateAmount(1.12, p, 'amount'),
+                             truncateAmountDigits(1.12, d['amount']))
+            self.assertEqual(truncateAmount(44.0, p, 'amount'),
+                             truncateAmountDigits(44.0, d['amount']))
         
     def test_validatePair(self):
         for pair in all_pairs:

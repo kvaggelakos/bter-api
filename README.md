@@ -1,97 +1,75 @@
-Work in progres: I forked alanmcintyre's btce-api in an attempt to get it working for bter.com instead. I will update this readme when it is working.
-
-btce-api
+bter-api
 ========
 
 This library provides a wrapper (hopefully a convenient one) around the public
-and trading APIs of the BTC-e.com exchange site.  So that you don't have to 
+and trading APIs of the bter.com exchange site.  So that you don't have to
 spend your time chasing down wacky dependencies, it depends only on the
 following standard libraries that are "batteries included" with a Python 2.7
 installation: 
 
     datetime, decimal, hashlib, hmac, HTMLParser, httplib, json, urllib, warnings
 
-Some of the samples use matplotlib and NumPy, and the tests use unittest
-(although I find it easier to run them with nose), but these are not used 
-in the library itself.
-
-NOTE: BTC-e is not affiliated with this project; this is a completely independent 
+NOTE: bter.com is not affiliated with this project; this is a completely independent
 implementation based on the API description.  Use at your own risk.
 
 If you find the library useful and would like to donate (and many thanks to 
 those that have donated!), please send some coins here:
 
-    LTC LatrKXtfw66LQUURrxBzCE7cxFc9Sv8FWf
-    BTC 16vnh6gwFYLGneBa8JUk7NaXpEt3Qojqs1
+    LTC LdP6HA2jtGQhwVfMMRWGyTR98CdthgKhXv
+    BTC 1NjwSFTEXZ5SRjAoUY7ihnAZnAeFB6NP9X
 
-The following functions in the btceapi module access the public API and/or 
-scrape content from the main page, and do not require any user account 
-information:
+This library is heavily based off alanmcintyre's btce-api
+(https://github.com/alanmcintyre/btce-api) for btc-e.com. Alan deserves most of the
+credit for this and his donation addresses can be found in the btce-api readme.
 
-    getDepth(pair) - Retrieve the depth for the given pair.  Returns a tuple 
-    (asks, bids); each of these is a list of (price, volume) tuples.  See the
-    example usage in samples/show_depth.py.
 
-    getTradeHistory(pair) - Retrieve the trade history for the given pair.  
-    Returns a list of Trade instances.  Each Trade instance has members 
-    trade_type (either "bid" or "ask"), price, tid (transaction ID?), amount, 
-    and date (a datetime object).
-    
-    scrapeMainPage() - Collect information from the main page and return it in
-    a ScraperResults object.  This object has members 'messages' (a list of 
-    (message ID, user, time, text) tuples representing the chat messages 
-    currently visible on the main page, 'bitInstantReserves' (an integer value
-    representing the current BitInstant reserves), and 'aurumXchangeReserves'
-    (an integer value representing the current AurumXchange reserves).
+The following functions in the bterapi module access the public API and do not
+require any user account  information:
 
-The TradeAPI class in the btceapi module accesses the trading API, and requires
-the key and secret values (found under "API Keys" on the Profile page).  The 
-constructor also takes an optional third argument (default value of 1) which 
-specifies the starting nonce; this is an integer value that is incremented
-on each subsequent API call.  While the TradeAPI object will take care of 
-incrementing this number during its lifetime, it is the user's responsibility 
-to remember this number (retrieved by the next_nonce method) before destroying 
-the TradeAPI object, and to provide it to the next TradeAPI instance that uses 
-the same key/secret.
+    getDepth(pair) - Retrieves the depth for the given pair.  Returns a tuple
+    (asks, bids); each of these is a list of (price, volume) tuples.
+
+    getTradeHistory(pair[, tid]) - Retrieves the trade history for the given pair.
+    Returns a list of Trade instances.  Each Trade instance has the following members:
+        pair,
+        type ('buy or sell'),
+        price,
+        tid,
+        amount, and
+        date (a datetime object).
+    Optional input argument tid returns trades starting from transaction with id tid.
+
+The TradeAPI class in the bterapi module accesses the trading API, and requires
+the key and secret values (found in a link on the bter.com API page).
 
 The following methods are available on a TradeAPI instance:
 
-    getInfo - Retrieves basic account information via the server getInfo 
-    method, and returns a TradeAccountInfo object with the following members:
-        balance_[currency] - Current available balance in the given currency.
-        open_orders - Number of open orders.
-        server_time - Server time in a datetime object.
-        transaction_count - Number of transactions. (?)
-        info_rights - True if the API key has info rights.
-        withdraw_rights - True if the API key has withdrawal rights.
-        trade_rights - True if the API key has trading rights.
-        
-    transHistory - Retrieves transaction history via the server TransHistory
-    method, and returns a list of TransactionHistoryItem objects, which have
-    the following members: type, amount, currency, desc, status, and timestamp
-    (a datetime object).
-    
-    tradeHistory - Retrieves trading history via the server TradeHistory 
-    method, and returns a list of TradeHistoryItem objects, which have the 
-    following members: pair (such as "btc_usd"), type ("buy" or "sell"), 
-    amount, rate, order_id, is_your_order, timestamp (a datetime object).
+    getFunds() - Retrieves basic account information via the server getfunds url, and
+    returns a dict of dicts. First level is currencies, second layer is 'available'
+    and 'locked'.
 
-    orderList - Retrieves a list of orders via the server OrderList method, and
-    returns a list of OrderItem objects, which have the following members: 
-    pair (such as "btc_usd"), type ("buy" or "sell"), amount, rate, 
-    timestamp_created (a datetime object) and status.
+    getOrderStatus(order) - Retrieves an order via the server getorder url, and
+    returns an OrderItem object, which has the following members:
+        order_id,
+        status ('open' or 'closed'),
+        pair,
+        type ('buy' or 'sell'),
+        rate,
+        amount (amount remaining to be traded),
+        initial_rate,
+        initial_amount,
+    Input order can be either an OrderItem object or an order id.
 
-    trade - Place a trade order via the server Trade method, and return a 
-    TradeResult object, which has the following members:
-        received - Immediate proceeds from the order.
-        remains - Portion of the order that remains unfilled.
-        order_id 
-        balance_[currency] - Current available balance in the given currency.
-        
-    cancelOrder - Cancel the specified order via the server CancelOrder method,
-    and return a CancelOrderResult object, which has the following members:
-        order_id 
-        balance_[currency] - Current available balance in the given currency.
-    
-See the API documentation (https://btc-e.com/api/documentation) for more 
-details on arguments to these methods.
+    placeOrder(pair, type, rate, amount, [update_delay]) - Places a trade order via
+    the server placeorder url,and return an OrderItem object. If update_delay is
+    passed, will wait update_delay seconds then retrieve the order status, allowing
+    to fill in more members of the OrderItem such as its status.
+
+    cancelOrder(order) - Cancels the specified order via the server cancelorder url,
+    and returns the message passed by the server. Input order can be an OrderItem or
+    an order id.
+
+For more information on the inputs and ouputs to these functions, see the bter API
+documentation (http://bter.com/api). For usage examples, see alanmcintyre's btce-api
+(https://github.com/alanmcintyre/btce-api) which has very similar usage and includes
+samples.
