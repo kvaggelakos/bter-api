@@ -6,7 +6,7 @@ import decimal
 import common
 
 
-def getDepth(pair, connection=None):
+def getDepth(pair, connection=None, error_handler=None):
     """
     Retrieve the depth for the given pair. Returns a tuple (asks, bids);
     each of these is a list of (price, volume) tuples.
@@ -16,12 +16,8 @@ def getDepth(pair, connection=None):
     if connection is None:
         connection = common.BTERConnection()
     
-    depth = connection.makeJSONRequest('/api/1/depth/%s' % pair, method='GET')
-    if type(depth) is not dict:
-        raise Exception("The response is a %r, not a dict." % type(depth))
-
-    if not depth[u'result']:
-        raise Exception(depth[u'message'] + u' (%s)' % pair)
+    depth = common.validateResponse(connection.makeJSONRequest('/api/1/depth/%s' % pair, method='GET'),
+                                    error_handler=error_handler)
     
     asks = depth.get(u'asks')
     if type(asks) is not list:
@@ -65,7 +61,7 @@ class Trade(object):
                 self.date = datetime.datetime.strptime(self.date, "%Y-%m-%d %H:%M:%S")
 
 
-def getTradeHistory(pair, connection=None, start_tid=None, count=None):
+def getTradeHistory(pair, connection=None, start_tid=None, count=None, error_handler=None):
     """
     Retrieve the trade history for the given pair. Returns a list of
     Trade instances. If count is not None, it should be an integer, and
@@ -81,12 +77,8 @@ def getTradeHistory(pair, connection=None, start_tid=None, count=None):
         result = connection.makeJSONRequest('/api/1/trade/%s' % pair, method='GET')
     else:
         result = connection.makeJSONRequest('/api/1/trade/%s/%d' % (pair, start_tid), method='GET')
-    
-    if type(result) is not dict:
-        raise Exception("The response is a %r, not a dict." % type(result))
 
-    if result[u'result'] == u'false' or not result[u'result']:
-        raise Exception(result[u'message'] + u' (%s)' % pair)
+    result = common.validateResponse(result, error_handler=error_handler)
 
     history = result[u'data']
     if type(history) is not list:

@@ -63,7 +63,7 @@ class TradeAPI(object):
         # We depend on the key handler for the secret
         self.secret = handler.getSecret(key)
                 
-    def _post(self, api_method, params=None, connection=None, ignored_errors=()):
+    def _post(self, api_method, params=None, connection=None, error_handler=None):
         if params is None:
             params = {'nonce': datetime.now().microsecond}
         else:
@@ -82,22 +82,10 @@ class TradeAPI(object):
         result = connection.makeJSONRequest('/api/1/private/' + api_method, method='POST',
                                             extra_headers=headers, params=encoded_params)
 
-        if type(result) is not dict:
-            raise Exception('The response is a %r, not a dict.' % type(result))
-        if result[u'result'] == u'false' or not result[u'result']:
-            if u'message' in result.keys():
-                if result[u'message'] not in ignored_errors:
-                    raise Exception(result[u'message'])
-            elif u'msg' in result.keys():
-                if result[u'msg'] not in ignored_errors:
-                    raise Exception(result[u'msg'])
-            else:
-                raise Exception(result)
-            
-        return result
+        return common.validateResponse(result, error_handler=error_handler)
 
-    def getFunds(self, connection=None):
-        info = self._post('getfunds', connection=connection)
+    def getFunds(self, connection=None, error_handler=None):
+        info = self._post('getfunds', connection=connection, error_handler=error_handler)
         balances = {c: {'available': decimal.Decimal(0), 'locked': decimal.Decimal(0)}
                     for c in common.all_currencies}
         for c, v in info.get(u'available_funds').items():
@@ -107,15 +95,13 @@ class TradeAPI(object):
 
         return balances
 
-    def getOrderStatus(self, order, connection=None):
-        if type(order) is OrderItem:
-            order_id = order.order_id
-        else:
-            order_id = order
-        result = self._post('getorder', params={'order_id': order_id}, connection=connection)
+    @validate_order
+    def getOrderStatus(self, order_id, connection=None, error_handler=None):
+        result = self._post('getorder', params={'order_id': order_id},
+                            connection=connection, error_handler=error_handler)
         return OrderItem(order_id, result)
            
-    def placeOrder(self, pair, trade_type, rate, amount, connection=None, update_delay=None):
+    def placeOrder(self, pair, trade_type, rate, amount, connection=None, update_delay=None, error_handler=None):
         common.validatePair(pair)
         if trade_type.lower() not in ("buy", "sell"):
             if trade_type.lower() == 'bid':
@@ -130,22 +116,25 @@ class TradeAPI(object):
                   "rate": common.formatCurrency(rate, pair, 'price'),
                   "amount": common.formatCurrency(amount, pair, 'amount')}
 
-        order = OrderItem(self._post('placeorder', params=params, connection=connection).get(u'order_id'),
-                          initial_params=params, date=now())
+        order = OrderItem(self._post('placeorder', params=params, connection=connection,
+                                     error_handler=error_handler).get(u'order_id'), initial_params=params, date=now())
 
         if update_delay is not None:
             time.sleep(update_delay)
             order = self.getOrderStatus(order.order_id, connection=None)
 
         return order
-        
-    def cancelOrder(self, order, connection=None, ignore_completed_order_error=False):
-        if type(order) is OrderItem:
-            order_id = order.order_id
-        else:
-            order_id = order
-        if ignore_completed_order_error:
-            ignored_errors = tuple(u'Error: Your order got bought up before you were able to cancel')
+
+    @validate_order
+    def cancelOrder(self, order_id, connection=None, error_handler=None):
         result = self._post('cancelorder', params={'order_id': order_id}, connection=connection,
-                            ignored_errors=ignored_errors)
+                            error_handler=error_handler)
         return result.get('msg')
+
+
+def validate_order(func):
+    def validated_func(order, *args, **kwargs):
+        if type(order) is OrderItem:
+            order = order.order_id
+        return func(order, *args, **kwargs)
+    return validated_func

@@ -194,3 +194,22 @@ def formatCurrencyDigits(value, digits):
 
 def formatCurrency(value, pair, price_or_amount):
     return formatCurrencyDigits(value, max_digits[pair][price_or_amount])
+
+
+def validateResponse(result, error_handler=None):
+
+    if type(result) is not dict:
+        raise Exception('The response is not a dict.')
+
+    if result[u'result'] == u'false' or not result[u'result']:
+        if error_handler is None:
+            if u'message' in result.keys():
+                raise Exception(result[u'message'])
+            elif u'msg' in result.key():
+                raise Exception(result[u'msg'])
+            else:
+                raise Exception(result)
+        else:
+            result = error_handler(result)
+
+    return result
