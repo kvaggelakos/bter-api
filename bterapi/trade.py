@@ -63,7 +63,7 @@ class TradeAPI(object):
         # We depend on the key handler for the secret
         self.secret = handler.getSecret(key)
                 
-    def _post(self, api_method, params=None, connection=None):
+    def _post(self, api_method, params=None, connection=None, ignored_errors=()):
         if params is None:
             params = {'nonce': datetime.now().microsecond}
         else:
@@ -86,9 +86,11 @@ class TradeAPI(object):
             raise Exception('The response is a %r, not a dict.' % type(result))
         if result[u'result'] == u'false' or not result[u'result']:
             if u'message' in result.keys():
-                raise Exception(result[u'message'])
+                if result[u'message'] not in ignored_errors:
+                    raise Exception(result[u'message'])
             elif u'msg' in result.keys():
-                raise Exception(result[u'msg'])
+                if result[u'msg'] not in ignored_errors:
+                    raise Exception(result[u'msg'])
             else:
                 raise Exception(result)
             
@@ -137,10 +139,13 @@ class TradeAPI(object):
 
         return order
         
-    def cancelOrder(self, order, connection=None):
+    def cancelOrder(self, order, connection=None, ignore_completed_order_error=False):
         if type(order) is OrderItem:
             order_id = order.order_id
         else:
             order_id = order
-        result = self._post('cancelorder', params={'order_id': order_id}, connection=connection)
+        if ignore_completed_order_error:
+            ignored_errors = tuple(u'Error: Your order got bought up before you were able to cancel')
+        result = self._post('cancelorder', params={'order_id': order_id}, connection=connection,
+                            ignored_errors=ignored_errors)
         return result.get('msg')
