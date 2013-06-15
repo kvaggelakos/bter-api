@@ -203,13 +203,18 @@ def validateResponse(result, error_handler=None):
 
     if result[u'result'] == u'false' or not result[u'result']:
         if error_handler is None:
-            if u'message' in result.keys():
-                raise Exception(result[u'message'])
-            elif u'msg' in result.key():
-                raise Exception(result[u'msg'])
-            else:
-                raise Exception(result)
+            raise Exception(errorMessage(result))
         else:
             result = error_handler(result)
 
     return result
+
+
+def errorMessage(result):
+    if u'message' in result.key():
+        message = result[u'message']
+    elif u'msg' in result.keys():
+        message = result[u'msg']
+    else:
+        message = result
+    return message
