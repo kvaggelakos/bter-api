@@ -211,7 +211,7 @@ def validateResponse(result, error_handler=None):
 
 
 def errorMessage(result):
-    if u'message' in result.key():
+    if u'message' in result.keys():
         message = result[u'message']
     elif u'msg' in result.keys():
         message = result[u'msg']
