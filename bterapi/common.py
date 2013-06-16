@@ -197,7 +197,7 @@ def formatCurrency(value, pair, price_or_amount):
 
 
 def validateResponse(result, error_handler=None):
-
+    #TODO: Proper error handling with Exception sublcass
     if type(result) is not dict:
         raise Exception('The response is not a dict.')
 

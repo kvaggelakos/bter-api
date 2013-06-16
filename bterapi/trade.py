@@ -96,10 +96,12 @@ class TradeAPI(object):
         info = self._post('getfunds', connection=connection, error_handler=error_handler)
         balances = {c: {'available': decimal.Decimal(0), 'locked': decimal.Decimal(0)}
                     for c in common.all_currencies}
-        for c, v in info.get(u'available_funds').items():
-            balances[c.lower()]['available'] = decimal.Decimal(v)
-        for c, v in info.get(u'locked_funds').items():
-            balances[c.lower()]['locked'] = decimal.Decimal(v)
+        if info.get(u'available_funds') is not None:
+            for c, v in info.get(u'available_funds').items():
+                balances[c.lower()]['available'] = decimal.Decimal(v)
+        if info.get(u'locked_funds') is not None:
+            for c, v in info.get(u'locked_funds').items():
+                balances[c.lower()]['locked'] = decimal.Decimal(v)
 
         return balances
 
