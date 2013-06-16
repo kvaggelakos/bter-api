@@ -15,6 +15,14 @@ import keyhandler
 def now():
     return datetime.now()
 
+
+def validate_order(func):
+    def validated_func(order, *args, **kwargs):
+        if type(order) is OrderItem:
+            order = order.order_id
+        return func(order, *args, **kwargs)
+    return validated_func
+
         
 class OrderItem(object):
     """
@@ -130,11 +138,3 @@ class TradeAPI(object):
         result = self._post('cancelorder', params={'order_id': order_id}, connection=connection,
                             error_handler=error_handler)
         return result.get('msg')
-
-
-def validate_order(func):
-    def validated_func(order, *args, **kwargs):
-        if type(order) is OrderItem:
-            order = order.order_id
-        return func(order, *args, **kwargs)
-    return validated_func
