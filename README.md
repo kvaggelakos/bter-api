@@ -60,7 +60,7 @@ The following methods are available on a TradeAPI instance:
         initial_amount,
     Input order can be either an OrderItem object or an order id.
 
-    placeOrder(pair, type, rate, amount, [update_delay]) - Places a trade order via
+    placeOrder(pair, type, rate, amount, [update_delay=]) - Places a trade order via
     the server placeorder url,and return an OrderItem object. If update_delay is
     passed, will wait update_delay seconds then retrieve the order status, allowing
     to fill in more members of the OrderItem such as its status.
@@ -68,6 +68,12 @@ The following methods are available on a TradeAPI instance:
     cancelOrder(order) - Cancels the specified order via the server cancelorder url,
     and returns the message passed by the server. Input order can be an OrderItem or
     an order id.
+    
+    All methods also take an optional error_handler input. This should be a function
+    which takes the server output as an input and either raises an exception or
+    returns the server output (potentially modified). It is only called if the server
+    indicates a problem. You can use this function to ignore certain errors; default
+    behavior is to raise an exception for any error returned from the server.
 
 For more information on the inputs and ouputs to these functions, see the bter API
 documentation (http://bter.com/api). For usage examples, see alanmcintyre's btce-api
