@@ -16,7 +16,7 @@ class BTERConnection:
             headers.update(extra_headers)
 
         self.conn.request(method, url, params, headers)
-        response = self.conn.getresponse().read()
+        response = self.conn.getresponse().read().decode()
 
         return response
 
