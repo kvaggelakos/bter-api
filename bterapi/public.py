@@ -3,7 +3,7 @@
 import datetime
 import decimal
 
-import common
+from bterapi import common
 
 
 def getDepth(pair, connection=None, error_handler=None):
@@ -12,18 +12,18 @@ def getDepth(pair, connection=None, error_handler=None):
     each of these is a list of (price, volume) tuples.
     """
     common.validatePair(pair)
-    
+
     if connection is None:
         connection = common.BTERConnection()
-    
+
     depth = common.validateResponse(connection.makeJSONRequest('/api/1/depth/%s' % pair, method='GET'),
                                     error_handler=error_handler)
-    
+
     asks = depth.get(u'asks')
     if type(asks) is not list:
         raise Exception("The response does not contain an asks list.")
-        
-    bids = depth.get(u'bids') 
+
+    bids = depth.get(u'bids')
     if type(bids) is not list:
         raise Exception("The response does not contain a bids list.")
 
@@ -41,20 +41,20 @@ def getDepth(pair, connection=None, error_handler=None):
         bids = zip(bid_prices, bid_sizes)
     else:
         bids = []
-    
+
     return asks, bids
-    
-   
+
+
 class Trade(object):
     __slots__ = ('pair', 'type', 'price', 'tid', 'amount', 'date')
-    
+
     def __init__(self, **kwargs):
         for s in Trade.__slots__:
             setattr(self, s, kwargs.get(s))
-        
+
         if type(self.date) in (int, float, decimal.Decimal):
             self.date = datetime.datetime.fromtimestamp(self.date)
-        elif type(self.date) in (str, unicode):
+        elif type(self.date) is str:
             if "." in self.date:
                 self.date = datetime.datetime.strptime(self.date, "%Y-%m-%d %H:%M:%S.%f")
             else:
@@ -69,7 +69,7 @@ def getTradeHistory(pair, connection=None, start_tid=None, count=None, error_han
     processed and returned.
     """
     common.validatePair(pair)
-    
+
     if connection is None:
         connection = common.BTERConnection()
 
@@ -83,12 +83,12 @@ def getTradeHistory(pair, connection=None, start_tid=None, count=None, error_han
     history = result[u'data']
     if type(history) is not list:
         raise Exception('The response does not contain a history list.')
-        
+
     result = []
     # Limit the number of items returned if requested.
     if count is not None:
         history = history[:count]
-        
+
     for h in history:
         h["pair"] = pair
         t = Trade(**h)

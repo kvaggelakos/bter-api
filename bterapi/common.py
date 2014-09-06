@@ -1,7 +1,7 @@
 # Copyright (c) 2013 Alan McIntyre
 
 import decimal
-from bterconnection import BTERConnection, parseJSONResponse
+from .bterconnection import BTERConnection, parseJSONResponse
 
 decimal.getcontext().rounding = decimal.ROUND_DOWN
 exps = [decimal.Decimal("1e-%d" % i) for i in range(16)]

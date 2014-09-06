@@ -7,8 +7,8 @@ from datetime import datetime
 import decimal
 import time
 
-import common
-import keyhandler
+from bterapi import common
+from bterapi import keyhandler
 
 
 # Putting this here in case I change my mind and want to use UTC or something.
@@ -23,7 +23,7 @@ def validate_order(func):
         return func(order, *args, **kwargs)
     return validated_func
 
-        
+
 class OrderItem(object):
     """
     An instance of this class will be returned by successful calls to TradeAPI.getOrderStatus and TradeAPI.placeOrder.
@@ -60,7 +60,7 @@ class OrderItem(object):
             self.date = None
 
 
-class TradeAPI(object):    
+class TradeAPI(object):
     def __init__(self, key, handler):
         self.key = key
         self.handler = handler
@@ -70,7 +70,7 @@ class TradeAPI(object):
 
         # We depend on the key handler for the secret
         self.secret = handler.getSecret(key)
-                
+
     def _post(self, api_method, params=None, connection=None, error_handler=None):
         if params is None:
             params = {'nonce': datetime.now().microsecond}
@@ -82,10 +82,10 @@ class TradeAPI(object):
         H = hmac.new(self.secret, digestmod=hashlib.sha512)
         H.update(encoded_params)
         sign = H.hexdigest()
-        
+
         if connection is None:
             connection = common.BTERConnection()
-        
+
         headers = {"Key": self.key, "Sign": sign}
         result = connection.makeJSONRequest('/api/1/private/' + api_method, method='POST',
                                             extra_headers=headers, params=encoded_params)
@@ -110,7 +110,7 @@ class TradeAPI(object):
         result = self._post('getorder', params={'order_id': order_id},
                             connection=connection, error_handler=error_handler)
         return OrderItem(order_id, result)
-           
+
     def placeOrder(self, pair, trade_type, rate, amount, connection=None, update_delay=None, error_handler=None):
         common.validatePair(pair)
         if trade_type.lower() not in ("buy", "sell"):
@@ -120,7 +120,7 @@ class TradeAPI(object):
                 trade_type = 'sell'
             else:
                 raise Exception("Unrecognized trade type: %r" % trade_type)
-       
+
         params = {"pair": pair,
                   "type": trade_type.upper(),
                   "rate": common.formatCurrency(rate, pair, 'price'),

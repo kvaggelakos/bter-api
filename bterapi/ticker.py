@@ -1,8 +1,8 @@
-import common
+from bterapi import common
 
 class Ticker:
     _market_data = {}
-    
+
     def __init__(self, pairs=common.all_pairs):
         for pair in pairs: common.validatePair(pair)
         self._pairs = pairs
