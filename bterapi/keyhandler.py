@@ -21,19 +21,19 @@ class KeyHandler(object):
                     break
                 secret = f.readline().strip()
                 self.addKey(key, secret)
-            
+
     @property
     def keys(self):
-        return self._keys.keys()
-        
+        return list(self._keys.keys())
+
     def getKeys(self):
-        return self._keys.keys()
-        
+        return list(self._keys.keys())
+
     def save(self, filename):
         f = open(filename, "wt")
         for k, data in self._keys.items():
             f.write("%s\n%s\n" % (k, data.secret))
-        
+
     def addKey(self, key, secret):
         self._keys[key] = KeyData(secret)
 
@@ -41,5 +41,5 @@ class KeyHandler(object):
         data = self._keys.get(key)
         if data is None:
             raise Exception("Key not found: %r" % key)
-        
+
         return data.secret
