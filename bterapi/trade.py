@@ -79,7 +79,7 @@ class TradeAPI(object):
         encoded_params = urllib.urlencode(params)
 
         # Hash the params string to produce the Sign header value
-        H = hmac.new(self.secret, digestmod=hashlib.sha512)
+        H = hmac.new(self.secret.encode(), digestmod=hashlib.sha512)
         H.update(encoded_params)
         sign = H.hexdigest()
 
