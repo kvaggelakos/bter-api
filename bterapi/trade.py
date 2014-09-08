@@ -1,6 +1,6 @@
 # Copyright (c) 2013 Alan McIntyre
 
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import hashlib
 import hmac
 from datetime import datetime
@@ -76,7 +76,7 @@ class TradeAPI(object):
             params = {'nonce': datetime.now().microsecond}
         else:
             params["nonce"] = datetime.now().microsecond
-        encoded_params = urllib.urlencode(params)
+        encoded_params = urllib.parse.urlencode(params)
 
         # Hash the params string to produce the Sign header value
         H = hmac.new(self.secret.encode(), digestmod=hashlib.sha512)
