@@ -211,7 +211,7 @@ def validateResponse(result, error_handler=None):
     if type(result) is not dict:
         raise Exception('The response is not a dict.')
 
-    if result[u'result'] == u'false' or not result[u'result']:
+    if not result[u'result'] or result[u'result'].lower() == u'false' or not result[u'result']:
         if error_handler is None:
             raise Exception(errorMessage(result))
         else:

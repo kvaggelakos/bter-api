@@ -140,3 +140,14 @@ class TradeAPI(object):
         result = self._post('cancelorder', params={'order_id': order_id}, connection=connection,
                             error_handler=error_handler)
         return result.get('msg')
+
+    def getOpenOrderList(self, pair=None, connection=None, error_handler=None):
+        response = self._post('orderlist', connection=connection, error_handler=error_handler)
+
+        result = []
+
+        for order in response['orders']:
+            if order['pair'] == pair:
+                result.append(OrderItem(order.pop('id'), {'order': order}))
+
+        return result
